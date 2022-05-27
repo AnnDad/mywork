@@ -1,7 +1,7 @@
 package gftool
 
 import (
-	"anndad/myfunc"
+	"github.com/anndad/mywork/myfunc"
 	"time"
 
 	// "crypto/md5"
@@ -29,19 +29,9 @@ import (
 	//"github.com/gogf/gf/os/gcfg"
 	"github.com/gogf/gf/os/gtime"
 	//"github.com/gogf/gf/encoding/gjson"
-	"github.com/gogf/gf/net/ghttp"
 )
 
-var (
-	config_path string
-)
-
-func HttpClient() *ghttp.Client {
-	c := g.Client()
-	c.SetTimeout(myfunc.Seconds(30))
-	c.SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36")
-	return c
-}
+type TMap = g.Map
 
 func GetGuid() string {
 	return myfunc.GetGuid()
