@@ -302,6 +302,11 @@ func DoQuery(taskid string, json *gjson.Json, page_index, page_size int) (*gjson
 	if json.Contains("sort") {
 		data.Set("sort", json.Get("sort"))
 	}
+	
+	//支持collapse
+	if json.Contains("collapse") {
+		data.Set("collapse", json.Get("collapse"))
+	}
 	//返回所有记录数
 	data.Set("track_total_hits", true)
 	PageIndex := page_index
