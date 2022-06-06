@@ -32,7 +32,7 @@ func Newlogger(name string) *TMylogger {
 	result.isScreenOut = true
 	result.logger = g.Log(fname)
 	Path := myfunc.AppPath("logs")
-	Println("logPath:", Path)
+	//Println("logPath:", Path)
 	result.conf = glog.DefaultConfig()
 	result.conf.Path = Path
 	//取消默认的时间
