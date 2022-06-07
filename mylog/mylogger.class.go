@@ -112,6 +112,11 @@ func (this *TMylogger) String(i interface{}) string {
 	return myfunc.String(i)
 }
 
+func (this *TMylogger) info(info string) {
+	msg := gftool.Now2StrWithMS() + "> " + info
+	this.logger.Info(msg)
+}
+
 func (this *TMylogger) Info(info string, docs ...string) {
 	msg := gftool.Now2StrWithMS() + "> " + info
 	if len(docs) > 0 {
@@ -133,13 +138,13 @@ func (this *TMylogger) Info(info string, docs ...string) {
 }
 
 func (this *TMylogger) Error(tip string, err error) {
-	this.Info(tip + err.Error())
+	this.info(tip + err.Error())
 	this.logger.Error(err)
 
 }
 
 func (this *TMylogger) Fatal(tip string, err error) {
-	this.Info(tip + err.Error())
+	this.info(tip + err.Error())
 	this.logger.Fatal(err)
 }
 
