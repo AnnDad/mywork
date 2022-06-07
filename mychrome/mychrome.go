@@ -2,8 +2,8 @@ package mychrome
 
 import (
 	//"anndad/gftool"
-	"github.com/anndad/mywork/myfunc"
-	"github.com/anndad/mywork/mylog"
+	"anndad/myfunc"
+	"anndad/mylog"
 	"context"
 	"io/ioutil"
 	"time"
