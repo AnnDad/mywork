@@ -3,7 +3,6 @@ package mxq_wxnotice
 import (
 	"github.com/anndad/mywork/gftool"
 	"github.com/anndad/mywork/mylog"
-	"github.com/anndad/mywork/mytool"
 
 	"github.com/gogf/gf/encoding/gjson"
 	"github.com/gogf/gf/frame/g"
@@ -24,7 +23,7 @@ func SetConfigPath(path string) {
 }
 
 func SendWXNotice(msgGroup, msg string, fceSend ...bool) {
-	taskid := mytool.GetGuid()
+	taskid := mylog.GetGuid()
 	mylog.Info("[" + taskid + "]微信消息: " + msg)
 	if config.GetInt("wechat.actived", 0) != 1 {
 		mylog.Info("wechat.actived=0,未发送到微信")
