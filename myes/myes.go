@@ -302,7 +302,7 @@ func DoQuery(taskid string, json *gjson.Json, page_index, page_size int) (*gjson
 	if json.Contains("sort") {
 		data.Set("sort", json.Get("sort"))
 	}
-	
+
 	//支持collapse
 	if json.Contains("collapse") {
 		data.Set("collapse", json.Get("collapse"))
@@ -572,7 +572,7 @@ func DoPost(taskid, url string, data string, saveasDetail bool) (*gjson.Json, er
 	if ftaskid == "" {
 		ftaskid = mylog.GetGuid()
 	}
-	mylog.Info("[" + ftaskid + "]提交ES[" + url + "]: " + data)
+	mylog.Info("[" + ftaskid + "]提交ES[" + url + "]: \n" + data)
 	c.SetContentType("application/json")
 	retry := 0
 	retryMax := es_retry
