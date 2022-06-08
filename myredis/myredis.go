@@ -17,13 +17,10 @@ func RedisAccess(redis string, commandName string, args ...interface{}) (string,
 	mylog.Info("RedisAccess[" + tip + "]...")
 	connRedis := g.Redis(redis)
 	result := ""
-	for n := 1; n <= 50; n++ {
+	for n := 1; n <= 3; n++ {
 		data, err := connRedis.DoVarWithTimeout(myfunc.Seconds(30), commandName, args...)
 		if err != nil {
 			mylog.Info("RedisAccess[" + tip + "] Error(try" + myfunc.String(n) + "): " + err.Error())
-			if n >= 50 {
-				mywxnotice.Send("", "redis访问失败超过50次: "+err.Error(), true)
-			}
 			continue
 		} else {
 			mylog.Info("RedisAccess[" + tip + "] Successed(try" + myfunc.String(n) + ")")
