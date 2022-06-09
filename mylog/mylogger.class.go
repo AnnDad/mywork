@@ -1,9 +1,10 @@
 package mylog
 
 import (
+	"fmt"
+
 	"github.com/anndad/mywork/gftool"
 	"github.com/anndad/mywork/myfunc"
-	"fmt"
 
 	"errors"
 	"strings"
@@ -114,6 +115,7 @@ func (this *TMylogger) String(i interface{}) string {
 
 func (this *TMylogger) info(info string) {
 	msg := gftool.Now2StrWithMS() + "> " + info
+	this.StdoutPrint(msg)
 	this.logger.Info(msg)
 }
 

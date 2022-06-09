@@ -150,9 +150,6 @@ func Convert(src string, srcCode string, tagCode string) string {
 func HttpClient() *ghttp.Client {
 	c := g.Client()
 	c.SetTimeout(myfunc.Seconds(client_timeout))
-	if client_retry > 0 {
-		c.SetRetry(client_retry, myfunc.Seconds(1))
-	}
 	c.SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36")
 	return c
 }
@@ -196,7 +193,7 @@ func GetHTMLWithClient(client *ghttp.Client, url string) (string, error) {
 			return rsp.ReadAllString(), nil
 		} else {
 			n = n + 1
-			if n <= 3 {
+			if n <= client_retry {
 				mylog.Info("访问[" + url + "]出错了, 重试: " + mylog.String(n))
 				continue
 			} else {

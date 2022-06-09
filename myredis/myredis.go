@@ -1,7 +1,7 @@
 package myredis
 
 import (
-	"anndad/mywxnotice"
+
 
 	"github.com/anndad/mywork/myfunc"
 	"github.com/anndad/mywork/mylog"
@@ -14,16 +14,16 @@ func RedisAccess(redis string, commandName string, args ...interface{}) (string,
 	if len(args) > 0 {
 		tip = tip + " " + myfunc.String(args[0])
 	}
-	mylog.Info("RedisAccess[" + tip + "]...")
+	mylog.Info("["+redis+"]RedisAccess[" + tip + "]...")
 	connRedis := g.Redis(redis)
 	result := ""
 	for n := 1; n <= 3; n++ {
 		data, err := connRedis.DoVarWithTimeout(myfunc.Seconds(30), commandName, args...)
 		if err != nil {
-			mylog.Info("RedisAccess[" + tip + "] Error(try" + myfunc.String(n) + "): " + err.Error())
+			mylog.Info("["+redis+"]RedisAccess[" + tip + "] Error(try" + myfunc.String(n) + "): " + err.Error())
 			continue
 		} else {
-			mylog.Info("RedisAccess[" + tip + "] Successed(try" + myfunc.String(n) + ")")
+			mylog.Info("["+redis+"]RedisAccess[" + tip + "] Successed(try" + myfunc.String(n) + ")")
 			if data != nil {
 				result = data.String()
 			}

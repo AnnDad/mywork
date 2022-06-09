@@ -1,5 +1,11 @@
 package myroutinetask
 
+import (
+	"github.com/anndad/mywork/myfunc"
+
+	"github.com/anndad/mywork/myjson"
+)
+
 type TRoutineTask struct {
 	TaskCount  int
 	chDone     chan string
@@ -53,9 +59,9 @@ func (this *TRoutineTask) Wait(onDone ...TOnDone) {
 				err = myfunc.NewError(err_msg)
 			}
 			isContinue := onDone[0](data, err)
-			myfunc.Println("isContinue: ", isContinue)
+			//myfunc.Println("isContinue: ", isContinue)
 			if !isContinue {
-				myfunc.Println("abort")
+				//myfunc.Println("abort")
 				break
 			}
 		}
