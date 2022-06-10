@@ -63,6 +63,11 @@ func (this *TMylogger) logFilePath(now *gtime.Time) string {
 func (this *TMylogger) Options_SaveLog() bool {
 	return g.Config("").GetInt("log_options.save_log", 1) == 1
 }
+
+func (this *TMylogger) Options_SaveDebug() bool {
+	return g.Config("").GetInt("log_options.save_debug", 0) == 1
+}
+
 func (this *TMylogger) Options_SaveDetail() bool {
 	if this.Options_SaveLog() {
 		return g.Config("").GetInt("log_options.save_doc", 0) == 1
@@ -119,13 +124,29 @@ func (this *TMylogger) info(info string) {
 	this.logger.Info(msg)
 }
 
+func (this *TMylogger) DebugInfo(info string, docs ...string) {
+	msg := gftool.Now2StrWithMS() + "> " + info
+	if len(docs) > 0 {
+		if this.Options_SaveDebug() {
+			msg = msg + "\info" + docs[0]
+			this.logger.Info(msg)	
+		}
+	}
+	this.doRotate()
+	if this.Options_SaveDebug() {
+		this.StdoutPrint(msg)
+		this.logger.Info(msg)
+	}
+
+}
+
 func (this *TMylogger) Info(info string, docs ...string) {
 	msg := gftool.Now2StrWithMS() + "> " + info
 	if len(docs) > 0 {
-		fpath := "doc_" + this.GetGuid() + ".txt"
-		msg = msg + "[" + fpath + "]"
-		fpath = myfunc.AppPath("logs/docs") + fpath
 		if this.Options_SaveDetail() {
+			fpath := "doc_" + this.GetGuid() + ".txt"
+			msg = msg + "[" + fpath + "]"
+			fpath = myfunc.AppPath("logs/docs") + fpath
 			myfunc.SaveFile(true, fpath, docs[0])
 		} else {
 			myfunc.Println(docs)
