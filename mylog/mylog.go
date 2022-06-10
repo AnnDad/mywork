@@ -37,6 +37,10 @@ func Info(info string, docs ...string) {
 	defLogger.Info(info, docs...)
 }
 
+func DebugInfo(info string, docs ...string) {
+	defLogger.DebugInfo(info, docs...)
+}
+
 func Error(tip string, err error) {
 	defLogger.Error(tip, err)
 

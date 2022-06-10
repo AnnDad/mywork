@@ -128,8 +128,8 @@ func (this *TMylogger) DebugInfo(info string, docs ...string) {
 	msg := gftool.Now2StrWithMS() + "> " + info
 	if len(docs) > 0 {
 		if this.Options_SaveDebug() {
-			msg = msg + "\info" + docs[0]
-			this.logger.Info(msg)	
+			msg = msg + "\n" + docs[0]
+			this.logger.Info(msg)
 		}
 	}
 	this.doRotate()
