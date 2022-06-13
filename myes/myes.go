@@ -496,9 +496,30 @@ func DoUpdateByID_part_with_add(taskid string, json *gjson.Json, id string, exps
 		return nil, err
 	}
 	if !UpdateDone(rsp) {
-		rsp, err = DoUpdateByID_all(taskid, json, id, exps...)
+		rsp, err = DoUpdateByID_add(taskid, json, id, exps...)
 	}
 	return rsp, err
+}
+
+func DoUpdateByID_add(taskid string, json *gjson.Json, id string, exps ...TESDataExp) (*gjson.Json, error) {
+	if id == "" {
+		return nil, errors.New("ERR_ID_Is_Empty")
+	}
+	url := json.GetString(nodeHost) + "/_bulk"
+	actJS := createEmptyJson()
+	actJS.Set("create"+levChar+"_index", json.GetString(nodeIndex))
+	actJS.Set("create"+levChar+"_id", id)
+	rowJS := createEmptyJson()
+	for _, k := range exps {
+		rowJS.Set(k.qeName, k.qeData)
+	}
+	data := actJS.MustToJsonString() + "\n" + rowJS.MustToJsonString() + "\n"
+	if es_debug {
+		mylog.Info("DoUpdateByID_add Debug: " + data)
+		return nil, errors.New("ERR_InDebug")
+	}
+	r, err := DoPost(taskid, url, data, false)
+	return r, err
 }
 func UpdateDone(rsp *gjson.Json) bool {
 	return rsp.GetInt("items.0.update.status") == 200
