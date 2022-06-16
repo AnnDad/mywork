@@ -58,9 +58,9 @@ func (this *TRoutineTask) Wait(onDone ...TOnDone) {
 			if err_msg != "" {
 				err = myfunc.NewError(err_msg)
 			}
-			isContinue := onDone[0](data, err)
+			is_abort := onDone[0](data, err)
 			//myfunc.Println("isContinue: ", isContinue)
-			if !isContinue {
+			if is_abort {
 				//myfunc.Println("abort")
 				break
 			}
@@ -82,5 +82,4 @@ func (this *TRoutineTask) ExecuteInThread(threadid, taskData string) {
 		msg = err.Error()
 	}
 	result.Set("task.err", msg)
-
 }
