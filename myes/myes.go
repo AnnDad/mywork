@@ -508,6 +508,27 @@ func IsEmpty(rsp *gjson.Json) bool {
 	return rsp.GetInt("record_count") == 0
 }
 
+func DoUpdateByID_add(taskid string, json *gjson.Json, id string, exps ...TESDataExp) (*gjson.Json, error) {
+	if id == "" {
+		return nil, errors.New("ERR_ID_Is_Empty")
+	}
+	url := json.GetString(nodeHost) + "/_bulk"
+	actJS := createEmptyJson()
+	actJS.Set("create"+levChar+"_index", json.GetString(nodeIndex))
+	actJS.Set("create"+levChar+"_id", id)
+	rowJS := createEmptyJson()
+	for _, k := range exps {
+		rowJS.Set(k.qeName, k.qeData)
+	}
+	data := actJS.MustToJsonString() + "\n" + rowJS.MustToJsonString() + "\n"
+	if es_debug {
+		mylog.Info("DoUpdateByID Debug: " + data)
+		return nil, errors.New("ERR_InDebug")
+	}
+	r, err := DoPost(taskid, url, data, false)
+	return r, err
+}
+
 func DoUpdateByID_part(taskid string, json *gjson.Json, id string, exps ...TESDataExp) (*gjson.Json, error) {
 	if id == "" {
 		return nil, errors.New("ERR_ID_Is_Empty")

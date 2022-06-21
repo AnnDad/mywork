@@ -51,6 +51,14 @@ func GetGuid() string {
 	return guid.GUID()
 }
 
+func BooleanDef(def bool, arr ...bool) bool {
+	result := def
+	if len(arr) > 0 {
+		result = arr[0]
+	}
+	return result
+}
+
 func Str2bytes(s string) []byte {
 	x := (*[2]uintptr)(unsafe.Pointer(&s))
 	h := [3]uintptr{x[0], x[1], x[1]}

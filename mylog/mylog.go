@@ -41,8 +41,8 @@ func DebugInfo(info string, docs ...string) {
 	defLogger.DebugInfo(info, docs...)
 }
 
-func Error(tip string, err error) {
-	defLogger.Error(tip, err)
+func Error(tip string, err error, saveTrace ...bool) {
+	defLogger.Error(tip, err, saveTrace...)
 
 }
 

@@ -4,9 +4,11 @@ import (
 	//"anndad/mylog"
 	//"log"
 
-	//"github.com/gogf/gf/encoding/gjson"
 	"net/url"
 
+	"github.com/anndad/mywork/myjson"
+
+	"github.com/anndad/mywork/myfunc"
 	"github.com/gogf/gf/net/ghttp"
 )
 
@@ -25,44 +27,63 @@ func UrlDecode(s string) string {
 	return r
 }
 
+func RequestAsJson(req *ghttp.Request) *myjson.TJson {
+	jsReq, err := req.GetJson()
+	if err != nil {
+		ReturnError(req, "err_request_not_valid_json")
+		return nil
+	}
+	return jsReq
+}
+
+func RequestFieldCheck(req *ghttp.Request, js *myjson.TJson, field string) {
+	if !js.Contains(field) {
+		ReturnError(req, "err_miss_field: "+field)
+		return
+	}
+}
 func rsp(fstate bool, fmsg string, fdata interface{}) TRSP {
 	return TRSP{State: fstate, Msg: fmsg, Data: fdata}
 }
 
-func ReturnData(req *ghttp.Request, fstate bool, fmsg string, fdata interface{}) {
-	req.Response.WriteJsonExit(rsp(fstate, fmsg, fdata))
+func ReturnData(req *ghttp.Request, fstate bool, fmsg string, fdata interface{}, abort ...bool) {
+	if myfunc.BooleanDef(true, abort...) {
+		req.Response.WriteJsonExit(rsp(fstate, fmsg, fdata))
+	} else {
+		req.Response.WriteJson(rsp(fstate, fmsg, fdata))
+	}
 }
 
-func ReturnError(req *ghttp.Request, fmsg string) {
-	req.Response.WriteJsonExit(rsp(false, fmsg, nil))
+func ReturnError(req *ghttp.Request, fmsg string, abort ...bool) {
+	if myfunc.BooleanDef(true, abort...) {
+		req.Response.WriteJsonExit(rsp(false, fmsg, nil))
+	} else {
+		req.Response.WriteJson(rsp(false, fmsg, nil))
+	}
 }
 
-func ReturnOK(req *ghttp.Request, fmsg string) {
-	req.Response.WriteJsonExit(rsp(true, fmsg, nil))
+func ReturnOK(req *ghttp.Request, fmsg string, abort ...bool) {
+	if myfunc.BooleanDef(true, abort...) {
+		req.Response.WriteJsonExit(rsp(true, fmsg, nil))
+	} else {
+		req.Response.WriteJson(rsp(true, fmsg, nil))
+	}
 }
 
-func ReturnOK_Data(req *ghttp.Request, fdata interface{}) {
-	req.Response.WriteJsonExit(rsp(true, "ok", fdata))
+func ReturnOK_Data(req *ghttp.Request, fdata interface{}, abort ...bool) {
+	if myfunc.BooleanDef(true, abort...) {
+		req.Response.WriteJsonExit(rsp(true, "ok", fdata))
+	} else {
+		req.Response.WriteJson(rsp(true, "ok", fdata))
+	}
 }
 
-func ReturnCustomData(req *ghttp.Request, data interface{}) {
-	req.Response.WriteJsonExit(data)
-}
-
-func ResultData(req *ghttp.Request, fstate bool, fmsg string, fdata interface{}) {
-	req.Response.WriteJson(rsp(fstate, fmsg, fdata))
-}
-
-func ResultError(req *ghttp.Request, fmsg string) {
-	req.Response.WriteJson(rsp(false, fmsg, nil))
-}
-
-func ResultOK(req *ghttp.Request, fmsg string) {
-	req.Response.WriteJson(rsp(true, fmsg, nil))
-}
-
-func ResultOK_Data(req *ghttp.Request, fdata interface{}) {
-	req.Response.WriteJson(rsp(true, "ok", fdata))
+func ReturnCustomData(req *ghttp.Request, data interface{}, abort ...bool) {
+	if myfunc.BooleanDef(true, abort...) {
+		req.Response.WriteJsonExit(data)
+	} else {
+		req.Response.WriteJson(data)
+	}
 }
 
 func CORSDefault(req *ghttp.Request) {

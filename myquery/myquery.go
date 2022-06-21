@@ -12,7 +12,11 @@ import (
 type TSelection = goquery.Selection
 
 func Html2Doc(html string) (*TSelection, error) {
-	doc, err := goquery.NewDocumentFromReader(myfunc.Str2Reader(html))
+	_html := html
+	if !myfunc.Contains(_html, "<html>") {
+		_html = "<html>" + _html + "</html>"
+	}
+	doc, err := goquery.NewDocumentFromReader(myfunc.Str2Reader(_html))
 	if err != nil {
 		return nil, err
 	}

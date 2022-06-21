@@ -160,10 +160,11 @@ func (this *TMylogger) Info(info string, docs ...string) {
 
 }
 
-func (this *TMylogger) Error(tip string, err error) {
+func (this *TMylogger) Error(tip string, err error, saveTrace ...bool) {
 	this.info(tip + err.Error())
-	this.logger.Error(err)
-
+	if myfunc.BooleanDef(false,saveTrace...) {
+		this.logger.Error(err)	
+	}
 }
 
 func (this *TMylogger) Fatal(tip string, err error) {
