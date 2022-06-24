@@ -190,7 +190,10 @@ func GetHTMLWithClient(client *ghttp.Client, url string) (string, error) {
 		rsp, err := _client.Get(url)
 		if err == nil {
 			defer rsp.Close()
-			return rsp.ReadAllString(), nil
+			html := rsp.ReadAllString()
+			mylog.DebugInfo("[" + url + "]RequestHeader:\n" + rsp.RawRequest())
+			mylog.DebugInfo("[" + url + "]html:\n" + html)
+			return html, nil
 		} else {
 			n = n + 1
 			if n <= client_retry {

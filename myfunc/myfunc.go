@@ -51,6 +51,14 @@ func GetGuid() string {
 	return guid.GUID()
 }
 
+func CalcPages(count, size) int {
+	page := Div(count, size)
+	if Mod(count, size) > 0 {
+		page = page + 1
+	}
+	return page
+}
+
 func BooleanDef(def bool, arr ...bool) bool {
 	result := def
 	if len(arr) > 0 {
