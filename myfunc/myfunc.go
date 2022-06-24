@@ -51,7 +51,7 @@ func GetGuid() string {
 	return guid.GUID()
 }
 
-func CalcPages(count, size) int {
+func CalcPages(count, size int) int {
 	page := Div(count, size)
 	if Mod(count, size) > 0 {
 		page = page + 1
