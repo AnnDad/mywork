@@ -191,8 +191,8 @@ func GetHTMLWithClient(client *ghttp.Client, url string) (string, error) {
 		if err == nil {
 			defer rsp.Close()
 			html := rsp.ReadAllString()
-			mylog.DebugInfo("[" + url + "]RequestHeader:\n" + rsp.RawRequest())
-			mylog.DebugInfo("[" + url + "]html:\n" + html)
+			//mylog.DebugInfo("[" + url + "]RequestHeader:\n" + rsp.RawRequest())
+			//mylog.DebugInfo("[" + url + "]html:\n" + html)
 			return html, nil
 		} else {
 			n = n + 1

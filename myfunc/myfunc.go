@@ -28,13 +28,23 @@ import (
 )
 
 type ArrayStr []string
+type TMap map[string]interface{}
 type TDoWithFile func(file_path string)
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
+
+func Empty_Map() TMap {
+	return TMap{}
+}
+
 func NewError(err string) error {
 	return errors.New(err)
+}
+
+func WrapError(msg string, err error) error {
+	return NewError(msg + err.Error())
 }
 
 func IsNum(s string) bool {
@@ -939,7 +949,9 @@ func ExtractRoot(ADomain string) string {
 	result = strings.Replace(result, "http://", "", 1)
 	result = strings.Replace(result, "https://", "", 1)
 	result = strings.Replace(result, "www.", "", 1)
-	result = strings.TrimRight(result, "/")
+	if Contains(result, "/") {
+		result = USubstrByTag(result, "/")
+	}
 	return result
 }
 
