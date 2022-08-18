@@ -28,12 +28,14 @@ import (
 )
 
 type ArrayStr []string
-type TMap map[string]interface{}
+
 type TDoWithFile func(file_path string)
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
+
+type TMap map[string]interface{}
 
 func Empty_Map() TMap {
 	return TMap{}
