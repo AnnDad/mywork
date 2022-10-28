@@ -1,4 +1,4 @@
-package myroutinetask
+package mytask
 
 import (
 	"github.com/anndad/mywork/myfunc"
