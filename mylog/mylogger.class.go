@@ -133,8 +133,9 @@ func (this *TMylogger) DebugInfo(info string, docs ...string) {
 		}
 	}
 	this.doRotate()
+	this.StdoutPrint(msg)
 	if this.Options_SaveDebug() {
-		this.StdoutPrint(msg)
+		
 		this.logger.Info(msg)
 	}
 

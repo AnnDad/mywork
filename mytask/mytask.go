@@ -15,12 +15,12 @@ type TOnExecute func(taskData string) (string, error)
 //输入: data 执行结果, err 执行过程中是否有错误
 //输出: bool 是否继续等待完成, true->继续等待,false->不等待
 
-type TOnDone func(tasks *myjson.TJson, data string, err error) bool
+type TOnDone func(allDone *myjson.TJson, data string, err error) bool
 
 func Execute(Func_Exec TOnExecute, taskData ...string) *myjson.TJson {
 	TaskCount := len(taskData)
 	chDone := make(chan string, TaskCount)
-	tasks := myjson.New()
+	allDone := myjson.New()
 	for i, item := range taskData {
 		go execInThread("thread"+myfunc.String(i), item, Func_Exec, chDone)
 	}
@@ -28,15 +28,21 @@ func Execute(Func_Exec TOnExecute, taskData ...string) *myjson.TJson {
 	for i := 0; i < TaskCount; i++ {
 		result := <-chDone
 		jsResult := myjson.New(result)
-		tasks.Append("tasks", jsResult.Get("task"))
+		err_msg := jsResult.GetString("task.msg")
+		if err_msg == "ok" {
+			allDone.Append("done_ok", jsResult.Get("task"))
+		} else {
+			allDone.Append("done_err", jsResult.Get("task"))
+		}
+		allDone.Append("tasks", jsResult.Get("task"))
 	}
-	return tasks
+	return allDone
 }
 
 func ExecuteWithDone(Func_Exec TOnExecute, Func_Done TOnDone, taskData ...string) *myjson.TJson {
 	TaskCount := len(taskData)
 	chDone := make(chan string, TaskCount)
-	tasks := myjson.New()
+	allDone := myjson.New()
 	for i, item := range taskData {
 		go execInThread("thread"+myfunc.String(i), item, Func_Exec, chDone)
 	}
@@ -47,16 +53,20 @@ func ExecuteWithDone(Func_Exec TOnExecute, Func_Done TOnDone, taskData ...string
 		var err error
 		err_msg := jsResult.GetString("task.msg")
 		data := jsResult.GetString("task.data")
-		if err_msg != "ok" {
+		if err_msg == "ok" {
+			allDone.Append("done_ok", jsResult.Get("task"))
+		} else {
 			err = myfunc.NewError(err_msg)
+			allDone.Append("done_err", jsResult.Get("task"))
 		}
-		is_Continue := Func_Done(tasks, data, err)
+		allDone.Append("tasks", jsResult.Get("task"))
+		is_Continue := Func_Done(allDone, data, err)
 		if !is_Continue {
 			break
 		}
-		tasks.Append("tasks", jsResult.Get("task"))
+
 	}
-	return tasks
+	return allDone
 }
 
 func execInThread(threadid, taskData string, Func_Exec TOnExecute, chDone chan string) {

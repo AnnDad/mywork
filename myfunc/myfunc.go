@@ -170,9 +170,9 @@ func HttpProtocolSwap(url string) string {
 	result := LowerCase(url)
 	if LeftStr(result, 5) == "http:" || LeftStr(result, 6) == "https:" {
 		if LeftStr(result, 5) == "http:" {
-			return "https:" + SubStrRune(url, 5)
+			return "https:" + SubStrRune(url, 5, 0)
 		} else {
-			return "http:" + SubStrRune(url, 6)
+			return "http:" + SubStrRune(url, 6, 0)
 		}
 
 	} else {
@@ -943,7 +943,11 @@ func MonthNameToNum(month string) int {
 }
 
 func LeftStr(str string, length int) string {
-	return SubStrRune(str, -1, length)
+	return SubStrRune(str, 0, length)
+}
+
+func RightStr(str string, length int) string {
+	return SubStrRune(str, -length, length)
 }
 
 func ExtractRoot(ADomain string) string {
@@ -955,6 +959,16 @@ func ExtractRoot(ADomain string) string {
 		result = USubstrByTag(result, "/")
 	}
 	return result
+}
+
+func MergeUrl(url, url2 string) string {
+	if RightStr(url, 1) == "/" {
+		url = strings.TrimRight(url, "/")
+	}
+	if LeftStr(url2, 1) == "/" {
+		url2 = strings.TrimLeft(url2, "/")
+	}
+	return url + "/" + url2
 }
 
 func ExtractCurrentPath(url string) string {
@@ -972,30 +986,43 @@ func ExtractCurrentPath(url string) string {
 	return urls.Join("/") + "/"
 }
 
-func SubStrRune(str string, start int, length ...int) (substr string) {
+func SubStrRune(str string, start int, length int) (substr string) {
 	// Converting to []rune to support unicode.
 	var (
 		runes       = []rune(str)
 		runesLength = len(runes)
 	)
-
+	var end int
 	// Simple border checks.
+
+	if start < 0 {
+		start = runesLength + start
+	}
+
+	if length == 0 {
+		end = runesLength
+	} else {
+		if length < 0 {
+			end = runesLength + length
+		} else {
+			end = start + length
+		}
+	}
+
+	//最终范围检查
 	if start < 0 {
 		start = 0
 	}
-	if start >= runesLength {
+	if start > runesLength {
 		start = runesLength
-	}
-	end := runesLength
-	if len(length) > 0 {
-		end = start + length[0]
-		if end < start {
-			end = runesLength
-		}
 	}
 	if end > runesLength {
 		end = runesLength
 	}
+	if end < start {
+		end = start
+	}
+	//fmt.Println("len: ",runesLength," ,start: ",start, " end: ",end)
 	return string(runes[start:end])
 }
 
@@ -1009,7 +1036,7 @@ func USubstr(Source, tag1, tag2 string, addtag ...bool) string {
 		if !inctag {
 			n1 = n1 + ULen(tag1)
 		}
-		tmp := SubStrRune(Source, n1, -1)
+		tmp := SubStrRune(Source, n1, 0)
 		if n2 := UPos(tmp, tag2, 0); n2 >= 0 {
 			if inctag {
 				n2 = n2 + ULen(tag2)
