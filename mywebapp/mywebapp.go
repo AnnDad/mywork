@@ -46,8 +46,8 @@ func RequestFieldCheck(req *ghttp.Request, js *myjson.TJson, field string) {
 		return
 	}
 }
-func rsp(fstate bool, fmsg string, fdata interface{}) TRSP {
-	return TRSP{State: fstate, Msg: fmsg, Data: fdata}
+func rsp(fstate bool, msg string, fdata interface{}) TRSP {
+	return TRSP{State: fstate, Msg: msg, Data: fdata}
 }
 
 func defaultResponse(req *ghttp.Request, fdata interface{}, abort ...bool) {
@@ -67,16 +67,26 @@ func defaultResponse(req *ghttp.Request, fdata interface{}, abort ...bool) {
 	}
 }
 
-func ReturnData(req *ghttp.Request, fstate bool, fmsg string, fdata interface{}, abort ...bool) {
-	defaultResponse(req, rsp(fstate, fmsg, fdata), abort...)
+func ReturnData(req *ghttp.Request, fstate bool, msg string, fdata interface{}, abort ...bool) {
+	defaultResponse(req, rsp(fstate, msg, fdata), abort...)
 }
 
-func ReturnError(req *ghttp.Request, fmsg string, abort ...bool) {
-	defaultResponse(req, rsp(false, fmsg, nil), abort...)
+func ReturnError_Data(req *ghttp.Request, msg string, fdata interface{}, abort ...bool) {
+	defaultResponse(req, rsp(false, msg, fdata), abort...)
 }
 
-func ReturnOK(req *ghttp.Request, fmsg string, abort ...bool) {
-	defaultResponse(req, rsp(true, fmsg, nil), abort...)
+func ReturnError(req *ghttp.Request, msg string, abort ...bool) {
+	defaultResponse(req, rsp(false, msg, nil), abort...)
+}
+
+func ReturnErrorIf(req *ghttp.Request, tip string, err error, abort ...bool) {
+	if err != nil {
+		defaultResponse(req, rsp(false, tip+" "+err.Error(), nil), abort...)
+	}
+}
+
+func ReturnOK(req *ghttp.Request, msg string, abort ...bool) {
+	defaultResponse(req, rsp(true, msg, nil), abort...)
 }
 
 func ReturnOK_Data(req *ghttp.Request, fdata interface{}, abort ...bool) {

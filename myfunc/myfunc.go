@@ -627,13 +627,13 @@ func SaveFile(isnew bool, path, text string, writeRN ...bool) (err error) {
 	}
 
 	var f *os.File
-	defer f.Close()
 
 	if newfile {
 		f, err = os.Create(path)
 	} else {
 		f, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, os.ModeAppend|os.ModePerm)
 	}
+	defer f.Close()
 	if isnew && text == "" {
 		//如果是新建并且文本为空, 那什么都不写入
 	} else {
