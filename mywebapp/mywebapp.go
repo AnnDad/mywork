@@ -17,9 +17,11 @@ type TRSP struct {
 	Msg   string      `json:"msg"`
 	Data  interface{} `json:"data"`
 }
+type TLogFunc = func(req *ghttp.Request, fdata interface{})
 
 var (
-	LogRequest bool = false
+	LogRequest  bool = false
+	LogFunction TLogFunc
 )
 
 func UrlEncode(s string) string {
@@ -46,19 +48,22 @@ func RequestFieldCheck(req *ghttp.Request, js *myjson.TJson, field string) {
 		return
 	}
 }
-func rsp(fstate bool, fmsg string, fdata interface{}) TRSP {
-	return TRSP{State: fstate, Msg: fmsg, Data: fdata}
+func rsp(fstate bool, msg string, fdata interface{}) TRSP {
+	return TRSP{State: fstate, Msg: msg, Data: fdata}
 }
 
 func defaultResponse(req *ghttp.Request, fdata interface{}, abort ...bool) {
-	if LogRequest {
-		reqID := req.GetHeader("requestID")
+	if LogFunction == nil {
+		//默认日志
+		reqID := req.GetHeader("Requestid")
 		if reqID == "" {
 			reqID = mylog.GetGuid()
 		}
-		mylog.Info("[" + reqID + "]url: " + req.Request.RequestURI)
-		mylog.Info("[" + reqID + "]body: " + req.GetBodyString())
-		mylog.Info("[" + reqID + "]response: " + mylog.String(fdata))
+		mylog.Info("def[" + reqID + "]url: " + req.Request.RequestURI)
+		mylog.Info("def[" + reqID + "]body: " + req.GetBodyString())
+		mylog.Info("def[" + reqID + "]response: " + mylog.String(fdata))
+	} else {
+		LogFunction(req, fdata)
 	}
 	if myfunc.BooleanDef(true, abort...) {
 		req.Response.WriteJsonExit(fdata)
@@ -67,16 +72,26 @@ func defaultResponse(req *ghttp.Request, fdata interface{}, abort ...bool) {
 	}
 }
 
-func ReturnData(req *ghttp.Request, fstate bool, fmsg string, fdata interface{}, abort ...bool) {
-	defaultResponse(req, rsp(fstate, fmsg, fdata), abort...)
+func ReturnData(req *ghttp.Request, fstate bool, msg string, fdata interface{}, abort ...bool) {
+	defaultResponse(req, rsp(fstate, msg, fdata), abort...)
 }
 
-func ReturnError(req *ghttp.Request, fmsg string, abort ...bool) {
-	defaultResponse(req, rsp(false, fmsg, nil), abort...)
+func ReturnError_Data(req *ghttp.Request, msg string, fdata interface{}, abort ...bool) {
+	defaultResponse(req, rsp(false, msg, fdata), abort...)
 }
 
-func ReturnOK(req *ghttp.Request, fmsg string, abort ...bool) {
-	defaultResponse(req, rsp(true, fmsg, nil), abort...)
+func ReturnError(req *ghttp.Request, msg string, abort ...bool) {
+	defaultResponse(req, rsp(false, msg, nil), abort...)
+}
+
+func ReturnErrorIf(req *ghttp.Request, tip string, err error, abort ...bool) {
+	if err != nil {
+		defaultResponse(req, rsp(false, tip+" "+err.Error(), nil), abort...)
+	}
+}
+
+func ReturnOK(req *ghttp.Request, msg string, abort ...bool) {
+	defaultResponse(req, rsp(true, msg, nil), abort...)
 }
 
 func ReturnOK_Data(req *ghttp.Request, fdata interface{}, abort ...bool) {

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/rand"
 	"net"
 	"os"
@@ -19,8 +20,12 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
+	"github.com/shopspring/decimal"
+
 	//"sort"
 	"io/ioutil"
+
+	"math"
 	"os/exec"
 	"path"
 
@@ -122,6 +127,30 @@ func Str2MD5(source string) string {
 	return hex.EncodeToString(m.Sum(nil))
 }
 
+func FormatNumber(length, n int) string {
+	return fmt.Sprintf("%0"+String(length)+"d", n)
+}
+
+func Round2(num float64) float64 {
+	var num2 float64
+	decimalValue := decimal.NewFromFloat(0)
+	if num < 0 {
+		decimalValue = decimal.NewFromFloat(num - 0.005)
+
+	} else {
+		decimalValue = decimal.NewFromFloat(num + 0.005)
+	}
+	//乘100
+	decimalValue = decimalValue.Mul(decimal.NewFromInt(100))
+	res, _ := decimalValue.Float64()
+	num3 := math.Trunc(res)
+	decimalValue2 := decimal.NewFromFloat(num3)
+	//除100
+	decimalValue2 = decimalValue2.Div(decimal.NewFromInt(100))
+	num2, _ = decimalValue2.Float64()
+	return num2
+}
+
 func Split(source, sp_char string) ArrayStr {
 	if strings.Trim(source, " ") == "" {
 		return Empty_ArrayStr()
@@ -170,9 +199,9 @@ func HttpProtocolSwap(url string) string {
 	result := LowerCase(url)
 	if LeftStr(result, 5) == "http:" || LeftStr(result, 6) == "https:" {
 		if LeftStr(result, 5) == "http:" {
-			return "https:" + SubStrRune(url, 5)
+			return "https:" + SubStrRune(url, 5, 0)
 		} else {
-			return "http:" + SubStrRune(url, 6)
+			return "http:" + SubStrRune(url, 6, 0)
 		}
 
 	} else {
@@ -199,15 +228,11 @@ func AppParamsExists() bool {
 
 func FileSize(path string) int64 {
 	var result int64 = 0
-	fmt.Println("path: " + path)
+
 	fi, err := os.Stat(path)
 	if err == nil {
 		result = fi.Size()
-		// fmt.Println("name:",fi.Name())
-		// fmt.Println("size:",fi.Size())
-		// fmt.Println("is dir:",fi.IsDir())
-		// fmt.Println("mode::",fi.Mode())
-		// fmt.Println("modTime:",fi.ModTime())
+
 	}
 	return result
 }
@@ -387,7 +412,7 @@ func (this *ArrayStr) Join(char string) string {
 	result := ""
 	n := this.Length()
 	for i := 0; i < n; i++ {
-		result = Add2EndIfNotEmpty(result, (*this)[i], char)
+		result = AddStrWithDelimiter(result, (*this)[i], char)
 	}
 	return result
 }
@@ -452,6 +477,16 @@ func StrInStrs(str string, strs ...string) bool {
 func Contains(str, substr string) bool {
 	return strings.Contains(str, substr)
 }
+
+func Join(strs []string, spliter string) string {
+	result := ""
+	n := len(strs)
+	for i := 0; i < n; i++ {
+		result = AddStrWithDelimiter(result, strs[i], spliter)
+	}
+	return result
+}
+
 func AddLeftStrIfNotExists(source, str string) string {
 	if Contains(source, str) {
 		return source
@@ -470,7 +505,6 @@ func ClearDir(APath string) {
 	dir, _ := ioutil.ReadDir(APath)
 	for _, d := range dir {
 		item := path.Join([]string{APath, d.Name()}...)
-		//fmt.Println(PathFormatSYS(item))
 		os.RemoveAll(item)
 	}
 }
@@ -496,6 +530,50 @@ func Str2Reader(str string) *strings.Reader {
 	return strings.NewReader(str)
 }
 
+func CopyFile(src, dst string, BUFFERSIZE int64, override bool) error {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file.", src)
+	}
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	if !override {
+		_, err = os.Stat(dst)
+		if err == nil {
+			return fmt.Errorf("File %s already exists.", dst)
+		}
+	}
+	destination, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	if err != nil {
+		panic(err)
+	}
+	buf := make([]byte, BUFFERSIZE)
+	for {
+		n, err := source.Read(buf)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if n == 0 {
+			break
+		}
+		if _, err := destination.Write(buf[:n]); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
 func ArrToStr(spliter string, arr ...interface{}) string {
 	result := ""
 	for _, v := range arr {
@@ -509,9 +587,16 @@ func ArrToStr(spliter string, arr ...interface{}) string {
 
 func CMD(cmd string, params ...string) error {
 	command := exec.Command(cmd, params...)
-	err := command.Start()
-	return err
+	return command.Start()
 }
+
+func CMD2(cmd string, params ...string) error {
+	command := exec.Command(cmd, params...)
+	command.Stdout = os.Stdout
+	return command.Run()
+
+}
+
 func OpenInExplorer(path string) {
 	CMD("cmd", "/c", "explorer", "/select,"+path+"")
 }
@@ -627,13 +712,13 @@ func SaveFile(isnew bool, path, text string, writeRN ...bool) (err error) {
 	}
 
 	var f *os.File
-	defer f.Close()
 
 	if newfile {
 		f, err = os.Create(path)
 	} else {
 		f, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, os.ModeAppend|os.ModePerm)
 	}
+	defer f.Close()
 	if isnew && text == "" {
 		//如果是新建并且文本为空, 那什么都不写入
 	} else {
@@ -730,6 +815,14 @@ func CaseWhenStr(exp bool, value_true, value_false string) string {
 	}
 }
 
+func Switch(exp bool, value_true, value_false string) string {
+	if exp {
+		return value_true
+	} else {
+		return value_false
+	}
+}
+
 func Random(min, max int) int {
 
 	return rand.Intn(max+1-min) + min
@@ -770,9 +863,18 @@ func PrintlnTip(tip string, a ...interface{}) {
 	fmt.Println(b...)
 }
 
-func KeyInMap(v map[string]interface{}, key string) bool {
-	_, ok := v[key]
+func KeyInMap(obj map[string]interface{}, key string) bool {
+	_, ok := obj[key]
 	return ok
+}
+
+func MapValue(obj map[string]interface{}, field string) string {
+	v, ok := obj[field]
+	if ok {
+		return String(v)
+	} else {
+		return ""
+	}
 }
 
 type apiString interface {
@@ -943,7 +1045,11 @@ func MonthNameToNum(month string) int {
 }
 
 func LeftStr(str string, length int) string {
-	return SubStrRune(str, -1, length)
+	return SubStrRune(str, 0, length)
+}
+
+func RightStr(str string, length int) string {
+	return SubStrRune(str, -length, length)
 }
 
 func ExtractRoot(ADomain string) string {
@@ -955,6 +1061,16 @@ func ExtractRoot(ADomain string) string {
 		result = USubstrByTag(result, "/")
 	}
 	return result
+}
+
+func MergeUrl(url, url2 string) string {
+	if RightStr(url, 1) == "/" {
+		url = strings.TrimRight(url, "/")
+	}
+	if LeftStr(url2, 1) == "/" {
+		url2 = strings.TrimLeft(url2, "/")
+	}
+	return url + "/" + url2
 }
 
 func ExtractCurrentPath(url string) string {
@@ -972,30 +1088,57 @@ func ExtractCurrentPath(url string) string {
 	return urls.Join("/") + "/"
 }
 
-func SubStrRune(str string, start int, length ...int) (substr string) {
+func ExtractFilePath(source string) string {
+	return PathAutoSys(filepath.Dir(source) + `\`)
+}
+func ExtractFileName(source string) string {
+	return filepath.Base(source)
+}
+func ExtractFileExt(source string) string {
+	ext := filepath.Ext(source)
+	if ext != "" {
+		ext = strings.ToLower(ext)
+	}
+	return ext
+}
+
+func SubStrRune(str string, start int, length int) (substr string) {
 	// Converting to []rune to support unicode.
 	var (
 		runes       = []rune(str)
 		runesLength = len(runes)
 	)
-
+	var end int
 	// Simple border checks.
+
+	if start < 0 {
+		start = runesLength + start
+	}
+
+	if length == 0 {
+		end = runesLength
+	} else {
+		if length < 0 {
+			end = runesLength + length
+		} else {
+			end = start + length
+		}
+	}
+
+	//最终范围检查
 	if start < 0 {
 		start = 0
 	}
-	if start >= runesLength {
+	if start > runesLength {
 		start = runesLength
-	}
-	end := runesLength
-	if len(length) > 0 {
-		end = start + length[0]
-		if end < start {
-			end = runesLength
-		}
 	}
 	if end > runesLength {
 		end = runesLength
 	}
+	if end < start {
+		end = start
+	}
+	//fmt.Println("len: ",runesLength," ,start: ",start, " end: ",end)
 	return string(runes[start:end])
 }
 
@@ -1009,7 +1152,7 @@ func USubstr(Source, tag1, tag2 string, addtag ...bool) string {
 		if !inctag {
 			n1 = n1 + ULen(tag1)
 		}
-		tmp := SubStrRune(Source, n1, -1)
+		tmp := SubStrRune(Source, n1, 0)
 		if n2 := UPos(tmp, tag2, 0); n2 >= 0 {
 			if inctag {
 				n2 = n2 + ULen(tag2)
@@ -1026,17 +1169,20 @@ func USubstrByTag(Source, tag string, addtag ...bool) string {
 	if len(addtag) > 0 {
 		inctag = addtag[0]
 	}
-	if n1 := UPos(Source, tag, 0); n1 >= 0 {
+	n1 := UPos(Source, tag, 0)
+
+	if n1 >= 0 {
 		if inctag {
 			n1 = n1 + ULen(tag)
 		}
 		result = SubStrRune(Source, 0, n1)
 	}
+
 	return result
 }
 
-func Pos(haystack, needle string, startOffset ...int) int {
-	length := len(haystack)
+func Pos(source, substr string, startOffset ...int) int {
+	length := len(source)
 	offset := 0
 	if len(startOffset) > 0 {
 		offset = startOffset[0]
@@ -1047,19 +1193,22 @@ func Pos(haystack, needle string, startOffset ...int) int {
 	if offset < 0 {
 		offset += length
 	}
-	pos := strings.Index(haystack[offset:], needle)
+	str := source[offset:]
+
+	pos := strings.Index(str, substr)
 	if pos == NotFoundIndex {
 		return NotFoundIndex
 	}
 	return pos + offset
 }
 
-func UPos(haystack, needle string, startOffset ...int) int {
-	pos := Pos(haystack, needle, startOffset...)
+func UPos(source, substr string, startOffset ...int) int {
+	pos := Pos(source, substr, startOffset...)
+
 	if pos < 3 {
 		return pos
 	}
-	return len([]rune(haystack[:pos]))
+	return len([]rune(source[:pos]))
 }
 
 func ULen(str string) int {
@@ -1093,11 +1242,77 @@ func UnsafeBytesToStr(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-func Add2EndIfNotEmpty(items, item, endstr string) string {
-	if items != "" {
-		return items + endstr + item
-	} else {
+func GetDirAllEntryPaths(dirname string, incDir bool) ([]string, error) {
+	// Remove the trailing path separator if dirname has.
+	dirname = strings.TrimSuffix(dirname, string(os.PathSeparator))
+
+	infos, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]string, 0, len(infos))
+	// Include current dir.
+	if incDir {
+		paths = append(paths, dirname)
+	}
+
+	for _, info := range infos {
+		path := dirname + string(os.PathSeparator) + info.Name()
+		if info.IsDir() {
+			tmp, err := GetDirAllEntryPaths(path, incDir)
+			if err != nil {
+				return nil, err
+			}
+			paths = append(paths, tmp...)
+			continue
+		}
+		paths = append(paths, path)
+	}
+	return paths, nil
+}
+
+// GetDirAllEntryPathsFollowSymlink gets all the file or dir paths in the specified directory recursively.
+func GetDirAllEntryPathsFollowSymlink(dirname string, incDir bool) ([]string, error) {
+	// Remove the trailing path separator if dirname has.
+	dirname = strings.TrimSuffix(dirname, string(os.PathSeparator))
+
+	infos, err := ioutil.ReadDir(dirname)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]string, 0, len(infos))
+	// Include current dir.
+	if incDir {
+		paths = append(paths, dirname)
+	}
+
+	for _, info := range infos {
+		path := dirname + string(os.PathSeparator) + info.Name()
+		realInfo, err := os.Stat(path)
+		if err != nil {
+			return nil, err
+		}
+		if realInfo.IsDir() {
+			tmp, err := GetDirAllEntryPathsFollowSymlink(path, incDir)
+			if err != nil {
+				return nil, err
+			}
+			paths = append(paths, tmp...)
+			continue
+		}
+		paths = append(paths, path)
+	}
+	return paths, nil
+}
+
+//在字符串尾部添加新的字符串及间隔符
+func AddStrWithDelimiter(items, item, delimiter string) string {
+	if items == "" {
 		return item
+	} else {
+		return items + delimiter + item
 	}
 }
 

@@ -1,8 +1,9 @@
 package gftool
 
 import (
-	"github.com/anndad/mywork/myfunc"
 	"time"
+
+	"github.com/anndad/mywork/myfunc"
 
 	// "crypto/md5"
 	// "encoding/base64"
@@ -32,6 +33,7 @@ import (
 )
 
 type TMap = g.Map
+type TDateTime = *gtime.Time
 
 func GetGuid() string {
 	return myfunc.GetGuid()
@@ -207,6 +209,10 @@ func Minute2Str(source *gtime.Time) string {
 
 func DateTime2Str(source *gtime.Time) string {
 	return source.Format("Y-m-d H:i:s")
+}
+
+func DateTime2Str_YYYYMM(source *gtime.Time) string {
+	return source.Format("Ym")
 }
 
 func DateTime2Week(source *gtime.Time) int {
